@@ -1,0 +1,54 @@
+name: Publish Knivra Build 17
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-build-17.yml']
+permissions:
+  contents: write
+concurrency:
+  group: publish-build-17
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download and verify public release
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output Knivra-17.exe https://downloads.knivra.ca/releases/Knivra-17.exe
+          echo '98156286eb25c6b103da0836851b9a674d04cda11772bf781503003228c4254e  Knivra-17.exe' > SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+          curl --fail --location --retry 3 --output GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
+          curl --fail --location --retry 3 --output GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
+          echo 'b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' | sha256sum --check -
+          echo 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d  GODOT-THIRD-PARTY.txt' | sha256sum --check -
+      - name: Publish verified Windows build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TARGET: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Knivra — Build 17
+
+          Download **Knivra-17.exe** for the latest fixes.
+
+          - New orange and teal Knivra icon for the Windows executable, desktop shortcuts and taskbar.
+          - Includes all Build 16 AI combat fixes.
+          - Compatible with the current public multiplayer server.
+          - If an old pinned shortcut keeps its previous icon, unpin it and pin the new executable.
+
+          The Windows executable opens without a terminal. Website: https://knivra.ca
+
+          SHA-256: `98156286eb25c6b103da0836851b9a674d04cda11772bf781503003228c4254e`
+          NOTES
+          if gh release view build-17 >/dev/null 2>&1; then
+            gh release upload build-17 Knivra-17.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+          else
+            gh release create build-17 Knivra-17.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "Knivra — Build 17: Desktop Icon" --notes-file notes.md --prerelease
+          fi
