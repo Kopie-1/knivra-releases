@@ -1,0 +1,58 @@
+name: Publish Knivra Build 13
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-build-13.yml']
+permissions:
+  contents: write
+concurrency:
+  group: publish-build-13
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download and verify public release
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output Knivra-13.exe https://downloads.knivra.ca/releases/Knivra-13.exe
+          echo '54381bc1ed34c15c8663ab8ba8f4d35cae59aa9ae1c8accee74f87804ba1eccd  Knivra-13.exe' > SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+          curl --fail --location --retry 3 --output GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
+          curl --fail --location --retry 3 --output GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
+          echo 'b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' | sha256sum --check -
+          echo 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d  GODOT-THIRD-PARTY.txt' | sha256sum --check -
+      - name: Publish verified Windows build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TARGET: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Knivra — Pick Up a Fight
+
+          Download **Knivra-13.exe**, open it, sign in, and select **Find Match**.
+
+          Choose Deathmatch, Team Deathmatch, or Capture the Flag. The first public arena queues players automatically, starts with two signed-in players, and requeues everyone after each round. Busy arenas show a waiting queue. Public rounds last up to five minutes.
+
+          Solo play and private parties remain available. The Windows executable uses the graphical subsystem and does not need a terminal or a Godot installation.
+
+          This is an early public matchmaking release with one arena, not skill-based or multi-region matchmaking. The browser edition remains solo/AI only.
+
+          Website: https://knivra.ca
+          Existing players can also install this build through the in-game Updates menu.
+
+          SHA-256: `54381bc1ed34c15c8663ab8ba8f4d35cae59aa9ae1c8accee74f87804ba1eccd`
+
+          Game source and private account data are not included in this repository.
+          NOTES
+          if gh release view build-13 >/dev/null 2>&1; then
+            gh release upload build-13 Knivra-13.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+          else
+            gh release create build-13 Knivra-13.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "Knivra — Build 13: Public Matchmaking" --notes-file notes.md --prerelease
+          fi
