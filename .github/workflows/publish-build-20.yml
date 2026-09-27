@@ -19,7 +19,9 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --location --retry 3 -o Knivra-20.exe https://downloads.knivra.ca/releases/Knivra-20.exe
-          echo 'da4bdf8048c3f34fe120a852b00566c6cea413e1af663a329c9107ca5610bc74  Knivra-20.exe' > SHA256SUMS.txt
+          echo 'f6e494c0f463b53234ac0dbabb7646275990f14591ad0749b5ebb00e555d5be9  Knivra-20.exe' > SHA256SUMS.txt
+          curl --fail --location --retry 3 -o Knivra-Build20-Source.zip https://downloads.knivra.ca/releases/Knivra-Build20-Source.zip
+          echo '42ec5819c681c505d65f82fb1246a81f4efb09986362bff911ce182258b60751  Knivra-Build20-Source.zip' >> SHA256SUMS.txt
           sha256sum --check SHA256SUMS.txt
           curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
           curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
@@ -39,6 +41,8 @@ jobs:
           - Visual overhaul across Freight Yard, Galleria, Verdant Bastion, Tidal Relay and all Expedition regions.
           - New detailed materials, soft lighting, contact shading and cover highlights.
           - Updated weapon silhouettes, player shading and cloth seams, supply cases and combat effects.
+          - Refined cap with stitched panels and curved brim; fitted goggles and glasses with reflective lenses.
+          - New 30-second in-game preview and matching Tidal Relay AI promotional art on the website.
           - Refreshed menus, HUD panels, health warnings and keyboard focus feedback.
           - Full-resolution scenery and weapon caches reduce rendering work.
           - Existing combat, roles, progression, map geometry and music preserved.
@@ -47,10 +51,11 @@ jobs:
 
           Windows launch remains a player-side check. Browser edition is solo/AI practice.
           Play and download: https://knivra.ca
-          SHA-256: da4bdf8048c3f34fe120a852b00566c6cea413e1af663a329c9107ca5610bc74
+          SHA-256: f6e494c0f463b53234ac0dbabb7646275990f14591ad0749b5ebb00e555d5be9
           NOTES
           if gh release view build-20 >/dev/null 2>&1; then
-            gh release upload build-20 Knivra-20.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+            gh release upload build-20 Knivra-20.exe Knivra-Build20-Source.zip GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+            gh release edit build-20 --notes-file notes.md
           else
-            gh release create build-20 Knivra-20.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "Knivra — Build 20: Reforged" --notes-file notes.md --prerelease
+            gh release create build-20 Knivra-20.exe Knivra-Build20-Source.zip GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "Knivra — Build 20: Reforged" --notes-file notes.md --prerelease
           fi
