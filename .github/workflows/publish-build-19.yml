@@ -1,0 +1,54 @@
+name: Publish Knivra Build 19
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-build-19.yml']
+permissions:
+  contents: write
+concurrency:
+  group: publish-build-19
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download and verify release
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o Knivra-19.exe https://downloads.knivra.ca/releases/Knivra-19.exe
+          echo '8b807b4ef0e337f456f24cd0c1e450bca77d70d85a5e9d5412c625d6af8dd30d  Knivra-19.exe' > SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+          curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
+          curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
+          echo 'b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' | sha256sum --check -
+          echo 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d  GODOT-THIRD-PARTY.txt' | sha256sum --check -
+      - name: Publish Windows release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TARGET: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Knivra Build 19: Expedition & Cosmetic Studio
+
+          - Team-specific Jade/Ember colors and accessible Galleria flags.
+          - Public lobby starts after 30 seconds with two players, or unanimous readiness; unanimous wait resets the timer.
+          - Fourth arena: Tidal Relay.
+          - Solo Expedition with three region types, escalating waves, supplies and checkpoints.
+          - Rank 20 rewards and cosmetic studio with 12 supporter items plus a bundle.
+          - Head-attached rotating crown/headphones, fitted armor and animated lightning ring.
+          - Checkout stays unavailable until the live PayPal account is connected.
+
+          Public multiplayer requires the Build 19 server update. Website: https://knivra.ca
+          SHA-256: 8b807b4ef0e337f456f24cd0c1e450bca77d70d85a5e9d5412c625d6af8dd30d
+          NOTES
+          if gh release view build-19 >/dev/null 2>&1; then
+            gh release upload build-19 Knivra-19.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+          else
+            gh release create build-19 Knivra-19.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "Knivra — Build 19: Expedition & Cosmetic Studio" --notes-file notes.md --prerelease
+          fi
