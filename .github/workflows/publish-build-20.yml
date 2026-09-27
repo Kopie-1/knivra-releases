@@ -1,0 +1,56 @@
+name: Publish Knivra Build 20
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-build-20.yml']
+permissions:
+  contents: write
+concurrency:
+  group: publish-build-20
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download and verify release
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o Knivra-20.exe https://downloads.knivra.ca/releases/Knivra-20.exe
+          echo 'da4bdf8048c3f34fe120a852b00566c6cea413e1af663a329c9107ca5610bc74  Knivra-20.exe' > SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+          curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
+          curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
+          echo 'b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' | sha256sum --check -
+          echo 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d  GODOT-THIRD-PARTY.txt' | sha256sum --check -
+      - name: Publish Windows release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TARGET: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Knivra Build 20: Reforged
+
+          - Visual overhaul across Freight Yard, Galleria, Verdant Bastion, Tidal Relay and all Expedition regions.
+          - New detailed materials, soft lighting, contact shading and cover highlights.
+          - Updated weapon silhouettes, player shading and cloth seams, supply cases and combat effects.
+          - Refreshed menus, HUD panels, health warnings and keyboard focus feedback.
+          - Full-resolution scenery and weapon caches reduce rendering work.
+          - Existing combat, roles, progression, map geometry and music preserved.
+          - 142 core checks pass from the exported game; spawn, AI, healer, campaign and authenticated multiplayer tests pass.
+          - Two exported Build 20 clients verified with the existing Build 19 server package.
+
+          Windows launch remains a player-side check. Browser edition is solo/AI practice.
+          Play and download: https://knivra.ca
+          SHA-256: da4bdf8048c3f34fe120a852b00566c6cea413e1af663a329c9107ca5610bc74
+          NOTES
+          if gh release view build-20 >/dev/null 2>&1; then
+            gh release upload build-20 Knivra-20.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+          else
+            gh release create build-20 Knivra-20.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "Knivra — Build 20: Reforged" --notes-file notes.md --prerelease
+          fi
