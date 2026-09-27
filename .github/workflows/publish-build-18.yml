@@ -1,0 +1,56 @@
+name: Publish Knivra Build 18
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-build-18.yml']
+permissions:
+  contents: write
+concurrency:
+  group: publish-build-18
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download and verify public release
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output Knivra-18.exe https://downloads.knivra.ca/releases/Knivra-18.exe
+          echo 'fcf6e7e1ccab999471080c4afc2e71dc2c19567fb039b4115eb26aa0f6ed2054  Knivra-18.exe' > SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+          curl --fail --location --retry 3 --output GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
+          curl --fail --location --retry 3 --output GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
+          echo 'b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' | sha256sum --check -
+          echo 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d  GODOT-THIRD-PARTY.txt' | sha256sum --check -
+      - name: Publish verified Windows build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TARGET: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Knivra — Build 18
+
+          Download **Knivra-18.exe** for the latest fixes.
+
+          - Public server automatically renews its sign-in after the account service restarts.
+          - Public rounds rotate through all three maps in shuffled cycles without immediate repeats.
+          - Healer AI approaches injured teammates when safe.
+          - Injured AI holds still for treatment, including healing from human teammates.
+          - Disconnect messages describe lost or rejected connections instead of assuming the host closed the party.
+          - Includes the custom Knivra desktop icon and previous gameplay fixes.
+
+          The Windows executable opens without a terminal. Website: https://knivra.ca
+
+          SHA-256: `fcf6e7e1ccab999471080c4afc2e71dc2c19567fb039b4115eb26aa0f6ed2054`
+          NOTES
+          if gh release view build-18 >/dev/null 2>&1; then
+            gh release upload build-18 Knivra-18.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+          else
+            gh release create build-18 Knivra-18.exe GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "Knivra — Build 18: Multiplayer Recovery and Healer AI" --notes-file notes.md --prerelease
+          fi
