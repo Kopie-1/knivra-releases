@@ -21,7 +21,7 @@ jobs:
           curl --fail --location --retry 3 -o Knivra-21.exe https://downloads.knivra.ca/releases/Knivra-21.exe
           echo 'c80a40f760711c5f096514de73fee1dcec2522859636550b3531a5f6799a2770  Knivra-21.exe' > SHA256SUMS.txt
           curl --fail --location --retry 3 -o Knivra-Build21-Source.zip https://downloads.knivra.ca/releases/Knivra-Build21-Source.zip
-          echo '39248ead7918b55f7526faf45e26265b9573b80ed60908fecfafb7d23cec4cd9  Knivra-Build21-Source.zip' >> SHA256SUMS.txt
+          echo 'fa70dee2c5a23555d6a9205d78f33e7d36c76dde69437806ec52e7b1bd1ff2fd  Knivra-Build21-Source.zip' >> SHA256SUMS.txt
           sha256sum --check SHA256SUMS.txt
           curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
           curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
@@ -46,6 +46,7 @@ jobs:
           - 142 core checks, 62 new presentation/pickup checks and 5,712 spawn cases passed.
           - Exported Build 21 clients verified with the existing Build 19 server package.
           - Browser match tested with no console errors.
+          - Optional touch browser controller: independent move/aim/fire sticks and action buttons, with device-aware website launch options. Synthetic multitouch and action tests pass; physical phone/tablet playtesting remains.
 
           Windows launch remains a player-side check. Browser edition is solo/AI practice.
           Play and download: https://knivra.ca
