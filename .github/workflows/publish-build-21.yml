@@ -1,0 +1,59 @@
+name: Publish Knivra Build 21
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-build-21.yml']
+permissions:
+  contents: write
+concurrency:
+  group: publish-build-21
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download and verify release
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o Knivra-21.exe https://downloads.knivra.ca/releases/Knivra-21.exe
+          echo 'c80a40f760711c5f096514de73fee1dcec2522859636550b3531a5f6799a2770  Knivra-21.exe' > SHA256SUMS.txt
+          curl --fail --location --retry 3 -o Knivra-Build21-Source.zip https://downloads.knivra.ca/releases/Knivra-Build21-Source.zip
+          echo '39248ead7918b55f7526faf45e26265b9573b80ed60908fecfafb7d23cec4cd9  Knivra-Build21-Source.zip' >> SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+          curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
+          curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
+          echo 'b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' | sha256sum --check -
+          echo 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d  GODOT-THIRD-PARTY.txt' | sha256sum --check -
+      - name: Publish Windows release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TARGET: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Knivra Build 21: Grounded
+
+          - New overhead and underside artwork for every weapon; dropped weapons visually tumble, bounce and settle.
+          - All team, earned and purchased rings now draw beneath characters and equipment.
+          - Detailed crowns, headphones, scarves, armor, role packs and standard tactical gear.
+          - Grounded title plaques and additional baked arena cover detail.
+          - Existing core gameplay, ammo, pickup locations, progression and server protocol preserved.
+          - 142 core checks, 62 new presentation/pickup checks and 5,712 spawn cases passed.
+          - Exported Build 21 clients verified with the existing Build 19 server package.
+          - Browser match tested with no console errors.
+
+          Windows launch remains a player-side check. Browser edition is solo/AI practice.
+          Play and download: https://knivra.ca
+          SHA-256: c80a40f760711c5f096514de73fee1dcec2522859636550b3531a5f6799a2770
+          NOTES
+          if gh release view build-21 >/dev/null 2>&1; then
+            gh release upload build-21 Knivra-21.exe Knivra-Build21-Source.zip GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+            gh release edit build-21 --notes-file notes.md
+          else
+            gh release create build-21 Knivra-21.exe Knivra-Build21-Source.zip GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "Knivra — Build 21: Grounded" --notes-file notes.md --prerelease
+          fi
