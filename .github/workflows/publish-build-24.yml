@@ -19,9 +19,9 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --location --retry 3 -o Knivra-24.exe https://downloads.knivra.ca/releases/Knivra-24.exe
-          echo 'f1a1a92d298789f8274f41718d706b11edf10ca4b4fffd9807732ff6602c5fb6  Knivra-24.exe' > SHA256SUMS.txt
+          echo '9202652190eb3965eb73ff9a92085dc45480a470c3b7f1777a8d7b6799f2fb8d  Knivra-24.exe' > SHA256SUMS.txt
           curl --fail --location --retry 3 -o Knivra-Build24-Source.zip https://downloads.knivra.ca/releases/Knivra-Build24-Source.zip
-          echo 'ec8077263b00ab4c5910582cfd942a5e86d8f9e121d003c991cf735b2861cb17  Knivra-Build24-Source.zip' >> SHA256SUMS.txt
+          echo 'c239343cee66a64d412bb204847a438f1ea6daaf5e6c6de47db5c375ec2d3ea2  Knivra-Build24-Source.zip' >> SHA256SUMS.txt
           sha256sum --check SHA256SUMS.txt
           curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
           curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
@@ -41,18 +41,19 @@ jobs:
           - Returns to the original arena game. Experimental Survival retired from the current game and website.
           - Tidal Relay room walls now connect fully; bridge decks meet platform edges. Rebuilt environment art and new arena-focused title artwork.
           - Nine solo operations: patrol clearing, prison breaks, timed hostage rescues, escort extraction and relay sabotage.
+          - First three mission patrols keep their intended weapons instead of scavenging heavy weapons.
           - Gentler opening with smaller melee patrols, reduced incoming damage and health/ammunition refills between waves.
           - Mission checkpoints, unlocked-mission selection, objective markers and retry controls.
           - Keyboard movement works alongside unused touch controls; WASD and arrow keys supported.
           - Existing cosmetics, ranked accounts, recovery codes and remembered sign-in retained.
           - Updated actual Tidal arena replay and website footage.
-          - 104 new checks in native and browser projects, four full escort-path checks, 142 arena checks, 62 presentation checks and 5,712 spawn cases passed.
+          - 107 new checks in native and browser projects, four full escort-path checks, 142 arena checks, 62 presentation checks and 5,712 spawn cases passed.
           - Updated arena server verified with two authenticated clients across consecutive matches and account-session recovery.
 
           Early-access playtest build. Native Windows OS and physical mobile testing remain user checks.
           Browser: offline arenas and missions. Windows: online arenas, parties, ranked progression and solo play.
           Website: https://knivra.ca
-          Windows SHA-256: f1a1a92d298789f8274f41718d706b11edf10ca4b4fffd9807732ff6602c5fb6
+          Windows SHA-256: 9202652190eb3965eb73ff9a92085dc45480a470c3b7f1777a8d7b6799f2fb8d
           NOTES
           if gh release view build-24 >/dev/null 2>&1; then
             gh release upload build-24 Knivra-24.exe Knivra-Build24-Source.zip GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
