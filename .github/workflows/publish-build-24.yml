@@ -1,0 +1,62 @@
+name: Publish Knivra Build 24
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-build-24.yml']
+permissions:
+  contents: write
+concurrency:
+  group: publish-build-24
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download and verify release
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o Knivra-24.exe https://downloads.knivra.ca/releases/Knivra-24.exe
+          echo 'f1a1a92d298789f8274f41718d706b11edf10ca4b4fffd9807732ff6602c5fb6  Knivra-24.exe' > SHA256SUMS.txt
+          curl --fail --location --retry 3 -o Knivra-Build24-Source.zip https://downloads.knivra.ca/releases/Knivra-Build24-Source.zip
+          echo 'ec8077263b00ab4c5910582cfd942a5e86d8f9e121d003c991cf735b2861cb17  Knivra-Build24-Source.zip' >> SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+          curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
+          curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
+          echo 'b0435e3b3e4e55248f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' | sha256sum --check -
+          echo 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d  GODOT-THIRD-PARTY.txt' | sha256sum --check -
+      - name: Publish Windows release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TARGET: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Knivra Build 24: Back to the Fight
+
+          - Returns to the original arena game. Experimental Survival retired from the current game and website.
+          - Tidal Relay room walls now connect fully; bridge decks meet platform edges. Rebuilt environment art and new arena-focused title artwork.
+          - Nine solo operations: patrol clearing, prison breaks, timed hostage rescues, escort extraction and relay sabotage.
+          - Gentler opening with smaller melee patrols, reduced incoming damage and health/ammunition refills between waves.
+          - Mission checkpoints, unlocked-mission selection, objective markers and retry controls.
+          - Keyboard movement works alongside unused touch controls; WASD and arrow keys supported.
+          - Existing cosmetics, ranked accounts, recovery codes and remembered sign-in retained.
+          - Updated actual Tidal arena replay and website footage.
+          - 104 new checks in native and browser projects, four full escort-path checks, 142 arena checks, 62 presentation checks and 5,712 spawn cases passed.
+          - Updated arena server verified with two authenticated clients across consecutive matches and account-session recovery.
+
+          Early-access playtest build. Native Windows OS and physical mobile testing remain user checks.
+          Browser: offline arenas and missions. Windows: online arenas, parties, ranked progression and solo play.
+          Website: https://knivra.ca
+          Windows SHA-256: f1a1a92d298789f8274f41718d706b11edf10ca4b4fffd9807732ff6602c5fb6
+          NOTES
+          if gh release view build-24 >/dev/null 2>&1; then
+            gh release upload build-24 Knivra-24.exe Knivra-Build24-Source.zip GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+            gh release edit build-24 --notes-file notes.md
+          else
+            gh release create build-24 Knivra-24.exe Knivra-Build24-Source.zip GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "Knivra — Build 24: Back to the Fight" --notes-file notes.md --prerelease
+          fi
