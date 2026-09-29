@@ -25,7 +25,7 @@ jobs:
           sha256sum --check SHA256SUMS.txt
           curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
           curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
-          echo 'b0435e3b3e4e55248f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' | sha256sum --check -
+          echo 'b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' | sha256sum --check -
           echo 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d  GODOT-THIRD-PARTY.txt' | sha256sum --check -
       - name: Publish Windows release
         env:
