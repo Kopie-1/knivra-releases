@@ -1,0 +1,62 @@
+name: Publish Knivra Build 23
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-build-23.yml']
+permissions:
+  contents: write
+concurrency:
+  group: publish-build-23
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download and verify release
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o Knivra-23.exe https://downloads.knivra.ca/releases/Knivra-23.exe
+          echo '5fa520f7dabeb0c567761730e78db6b6278810b994818214e07d8651f58aa1ff  Knivra-23.exe' > SHA256SUMS.txt
+          curl --fail --location --retry 3 -o Knivra-Build23-Source.zip https://downloads.knivra.ca/releases/Knivra-Build23-Source.zip
+          echo '058a13e7d6bbb55a8dcb138d196dda6825d3c2bbaa778d78b2069b9d65baae1b  Knivra-Build23-Source.zip' >> SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+          curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
+          curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
+          echo 'b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' | sha256sum --check -
+          echo 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d  GODOT-THIRD-PARTY.txt' | sha256sum --check -
+      - name: Publish Windows release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TARGET: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Knivra Build 23: Survival Variety
+
+          - 56 additional Survival art variants: school/clinic/police/shop/workshop furnishings, distinct vehicle bodies, varied home furniture, floors, foliage and street detail.
+          - Presentation-only variety update; compatible with the installed Build 22 Survival service. Public Survival verified with two authenticated clients over HTTPS/WebSocket.
+          - Respawns select clear roads away from nearby living zombies and players.
+          - New streamed, furnished Survival world with hunger, thirst, backpacks, two weapons, suppressors, visible holsters, animated randomized loot and day/night.
+          - Zombies use sight and sound, with walking/running variants, brief punch knockdowns and lethal blades. Public Survival supports up to 40 players, with no player markers.
+          - Richer arena and Expedition environment surfaces while preserving existing arena gameplay.
+          - New AI title artwork, original menu/loading music, Tidal Relay menu replay and expanded fullscreen presentation.
+          - Saved recovery codes and optional 30-day remembered login.
+          - 142 arena checks, 62 presentation checks, 5,712 spawn cases, 57 account tests, Survival security/persistence/room-access/touch checks and a synthetic 40-client session passed.
+          - Exported Windows game pack verified against the existing arena server across two rounds and account-session recovery.
+
+          Early-access playtest build. Native Windows and physical mobile testing remain player-side checks. The 40-client test was simulated, not 40 human players.
+          Public Survival requires the new dedicated Survival service; offline practice works independently.
+          Website and rollout status: https://knivra.ca
+          Windows SHA-256: 5fa520f7dabeb0c567761730e78db6b6278810b994818214e07d8651f58aa1ff
+          NOTES
+          if gh release view build-23 >/dev/null 2>&1; then
+            gh release upload build-23 Knivra-23.exe Knivra-Build23-Source.zip GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+            gh release edit build-23 --notes-file notes.md
+          else
+            gh release create build-23 Knivra-23.exe Knivra-Build23-Source.zip GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "Knivra — Build 23: Survival Variety" --notes-file notes.md --prerelease
+          fi
