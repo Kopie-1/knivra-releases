@@ -19,9 +19,9 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --location --retry 3 -o Knivra-22.exe https://downloads.knivra.ca/releases/Knivra-22.exe
-          echo '8b72e35304e095ff8ede29b9fe014889af53f76d568d31429cba3a0941206b5d  Knivra-22.exe' > SHA256SUMS.txt
+          echo 'fcb5d99dbdc830880923ed13c705e15945e243a7eca46375086d99390b2114ee  Knivra-22.exe' > SHA256SUMS.txt
           curl --fail --location --retry 3 -o Knivra-Build22-Source.zip https://downloads.knivra.ca/releases/Knivra-Build22-Source.zip
-          echo '1a7d9dbd357c9eb447f1dadfb92babf32b439bc989bb22e9d30c8895c94d2b0b  Knivra-Build22-Source.zip' >> SHA256SUMS.txt
+          echo '616104fbbac6ffcdef0e7438b3b39412c1f056dffce366fb9dc92134e9e5fe98  Knivra-Build22-Source.zip' >> SHA256SUMS.txt
           sha256sum --check SHA256SUMS.txt
           curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
           curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
@@ -38,6 +38,7 @@ jobs:
           cat > notes.md <<'NOTES'
           Knivra Build 22: After the Silence
 
+          - Respawns select clear roads away from nearby living zombies and players.
           - New streamed, furnished Survival world with hunger, thirst, backpacks, two weapons, suppressors, visible holsters, animated randomized loot and day/night.
           - Zombies use sight and sound, with walking/running variants, brief punch knockdowns and lethal blades. Public Survival supports up to 40 players, with no player markers.
           - Richer arena and Expedition environment surfaces while preserving existing arena gameplay.
@@ -49,7 +50,7 @@ jobs:
           Early-access playtest build. Native Windows and physical mobile testing remain player-side checks. The 40-client test was simulated, not 40 human players.
           Public Survival requires the new dedicated Survival service; offline practice works independently.
           Website and rollout status: https://knivra.ca
-          Windows SHA-256: 8b72e35304e095ff8ede29b9fe014889af53f76d568d31429cba3a0941206b5d
+          Windows SHA-256: fcb5d99dbdc830880923ed13c705e15945e243a7eca46375086d99390b2114ee
           NOTES
           if gh release view build-22 >/dev/null 2>&1; then
             gh release upload build-22 Knivra-22.exe Knivra-Build22-Source.zip GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
