@@ -1,0 +1,2 @@
+PASS full base arena caused exactly one real Godot worker to start; two authenticated clients joined and completed two rounds
+PASS extra arena stopped after disconnect, reconnect grace and idle delay; no active player was removed

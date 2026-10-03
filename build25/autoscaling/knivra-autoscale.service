@@ -1,0 +1,32 @@
+[Unit]
+Description=KNIVRA demand-driven arena supervisor
+After=network-online.target knivra-accounts.service
+Wants=network-online.target knivra-accounts.service
+[Service]
+Type=simple
+User=kaci
+Group=kaci
+WorkingDirectory=/opt/knivra-server/AccountServer
+ExecStart=/usr/bin/python3 /opt/knivra-server/AccountServer/autoscale.py
+Environment=KNIVRA_FLEET_FILE=/etc/knivra/fleet25.json
+Environment=KNIVRA_ALLOCATION_DB=/home/kaci/.local/share/knivra/allocations25.sqlite3
+Environment=KNIVRA_IDLE_SECONDS=120
+LoadCredential=server.json:/etc/knivra/server.json
+LoadCredential=server.key:/home/kaci/.local/share/knivra/server.key
+StateDirectory=knivra-autoscale
+Restart=on-failure
+RestartSec=15
+KillMode=mixed
+TimeoutStopSec=1000
+MemoryHigh=3G
+MemoryMax=4G
+CPUQuota=200%
+TasksMax=256
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/kaci/.local/share/knivra
+[Install]
+WantedBy=multi-user.target

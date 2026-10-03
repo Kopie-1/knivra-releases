@@ -1,0 +1,26 @@
+name: Publish Build 25 automatic arenas
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-autoscale.yml']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and publish server upgrade
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o Knivra-Build25-Autoscaling.tar.gz https://downloads.knivra.ca/releases/Knivra-Build25-Autoscaling.tar.gz
+          echo '15eb21d696806dd7f8bb7ce91a2722e6acdcd2c7d33de3ed1a55e7c2a90aa2d8  Knivra-Build25-Autoscaling.tar.gz' > SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+          python3 -m unittest discover -s build25/autoscaling -p test_autoscale.py
+          python3 -m unittest discover -s build25/autoscaling -p test_fleet25.py
+          gh release create build-25-autoscaling Knivra-Build25-Autoscaling.tar.gz SHA256SUMS.txt --target "$GITHUB_SHA" --title 'Build 25 — automatic extra arenas (server upgrade)' --notes-file build25/autoscaling/README.md --prerelease

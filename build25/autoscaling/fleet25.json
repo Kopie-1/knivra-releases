@@ -1,0 +1,6 @@
+{
+  "arena-1": {"address": "downloads.knivra.ca:27844", "capacity": 7, "managed": false},
+  "arena-2": {"address": "downloads.knivra.ca:27846", "port": 27846, "capacity": 7, "managed": true},
+  "arena-3": {"address": "downloads.knivra.ca:27847", "port": 27847, "capacity": 7, "managed": true},
+  "arena-4": {"address": "downloads.knivra.ca:27848", "port": 27848, "capacity": 7, "managed": true}
+}
