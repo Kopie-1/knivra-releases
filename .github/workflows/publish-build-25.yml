@@ -1,0 +1,56 @@
+name: Publish Knivra Build 25
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-build-25.yml']
+permissions:
+  contents: write
+concurrency:
+  group: publish-build-25
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download and verify Build 25
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o Knivra-25.exe https://downloads.knivra.ca/releases/Knivra-25.exe
+          echo 'aff6ef1965bd4f63acf73dd11af577ee10d14f371ef3049fb49b810ed9883c5c  Knivra-25.exe' >> SHA256SUMS.txt
+          curl --fail --location --retry 3 -o Knivra-25-Linux.tar.gz https://downloads.knivra.ca/releases/Knivra-25-Linux.tar.gz
+          echo '9d6bf5f5b48e6c95998d07aae5cb1d4fa5ab5cc8d146c96697a78f095194155f  Knivra-25-Linux.tar.gz' >> SHA256SUMS.txt
+          curl --fail --location --retry 3 -o Knivra-Build25-Source.zip https://downloads.knivra.ca/releases/Knivra-Build25-Source.zip
+          echo 'bb194f66fbdedc2c469a07b2012013d82c9a1271dd5c2d83a3bf79b2600cfc58  Knivra-Build25-Source.zip' >> SHA256SUMS.txt
+          curl --fail --location --retry 3 -o Knivra-Build25-History.bundle https://downloads.knivra.ca/releases/Knivra-Build25-History.bundle
+          echo '74f95b3e3e17844dbabf24f253c3bbed9ec0fa0a1ea5a348465d2f909e3c2ca9  Knivra-Build25-History.bundle' >> SHA256SUMS.txt
+          curl --fail --location --retry 3 -o Knivra-Build25-Server.tar.gz https://downloads.knivra.ca/releases/Knivra-Build25-Server.tar.gz
+          echo '86e6fce9cd012114e8b38fc0967dabfd12bc3c857cfe0905f5de3240a7c2df6a  Knivra-Build25-Server.tar.gz' >> SHA256SUMS.txt
+          curl --fail --location --retry 3 -o README.md https://downloads.knivra.ca/releases/Build25-README.md
+          echo 'e29004cefcc31b347c9125a22967cbeb0225347f5df25300ff257453a2026d16  README.md' >> SHA256SUMS.txt
+          curl --fail --location --retry 3 -o TESTING.md https://downloads.knivra.ca/releases/Build25-TESTING.md
+          echo 'baa2375fac68aaa4557ca837ffb8ea24ee821d630eb04ff722106b8e4efc68a0  TESTING.md' >> SHA256SUMS.txt
+          curl --fail --location --retry 3 -o SCALING.md https://downloads.knivra.ca/releases/Build25-SCALING.md
+          echo '6bf4bf737b147ce0d1cce76aa98678119402876fa4180046e0bd22e3c632608f  SCALING.md' >> SHA256SUMS.txt
+          curl --fail --location --retry 3 -o GODOT-LICENSE.txt https://downloads.knivra.ca/releases/GODOT-LICENSE.txt
+          echo 'b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80  GODOT-LICENSE.txt' >> SHA256SUMS.txt
+          curl --fail --location --retry 3 -o GODOT-THIRD-PARTY.txt https://downloads.knivra.ca/releases/GODOT-THIRD-PARTY.txt
+          echo 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d  GODOT-THIRD-PARTY.txt' >> SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+      - name: Publish Build 25
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TARGET: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp README.md notes.md
+          if gh release view build-25 >/dev/null 2>&1; then
+            gh release upload build-25 Knivra-25.exe Knivra-25-Linux.tar.gz Knivra-Build25-Source.zip Knivra-Build25-History.bundle Knivra-Build25-Server.tar.gz README.md TESTING.md SCALING.md GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --clobber
+            gh release edit build-25 --notes-file notes.md
+          else
+            gh release create build-25 Knivra-25.exe Knivra-25-Linux.tar.gz Knivra-Build25-Source.zip Knivra-Build25-History.bundle Knivra-Build25-Server.tar.gz README.md TESTING.md SCALING.md GODOT-LICENSE.txt GODOT-THIRD-PARTY.txt SHA256SUMS.txt --target "$RELEASE_TARGET" --title "KNIVRA — Build 25: Pick Up a Fight" --notes-file notes.md --prerelease
+          fi
